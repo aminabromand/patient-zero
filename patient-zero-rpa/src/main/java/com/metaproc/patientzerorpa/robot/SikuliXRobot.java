@@ -1,5 +1,6 @@
 package com.metaproc.patientzerorpa.robot;
 
+import com.metaproc.patientzerorpa.appservices.gmx.GmxController;
 import lombok.extern.slf4j.Slf4j;
 import org.sikuli.basics.Debug;
 import org.sikuli.script.*;
@@ -11,11 +12,13 @@ import java.util.List;
 @Component
 public class SikuliXRobot implements RpaRobot{
 
-	String clazz = "com.metaproc.patientzerorpa.robot.SikuliXRobot";
-	String imgFolder = "/sikulix/imgs";
+	String clazz = this.getClass().getCanonicalName();
+	String imgFolder = "/appservices/imgs";
 
 	@Override
 	public void init() {
+
+		System.out.println(clazz);
 		String inJarFolder = clazz + imgFolder;
 		if (ImagePath.add(inJarFolder)) {
 			log.info("Image Folder in jar at: %s", inJarFolder);
@@ -43,7 +46,29 @@ public class SikuliXRobot implements RpaRobot{
 
 	@Override
 	public void execute() {
+		log.debug( "robot take screenshot" );
+		takeScreenshot();
+//		test();
+	}
 
+	private void takeScreenshot() {
+		Screen s = new Screen();
+
+		try{
+
+			ScreenImage userCapture = s.userCapture();
+			userCapture.save( "/Users/amin/Train/patient-zero/patient-zero-rpa/src/main/resources/screenshots/", "screenshot" );
+			s.find( userCapture.getFile() ).highlight( 2 );
+			log.debug( "took screenshot" );
+
+		} catch(FindFailed findFailed){
+			findFailed.printStackTrace();
+			log.debug( "screenshot failed" );
+		}
+
+	}
+
+	private void test() {
 		Screen s = new Screen();
 		Debug.info("Screen: %s", s);
 
@@ -75,5 +100,6 @@ public class SikuliXRobot implements RpaRobot{
 			e.printStackTrace();
 		}
 	}
+
 
 }

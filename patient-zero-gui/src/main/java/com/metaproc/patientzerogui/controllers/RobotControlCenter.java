@@ -1,114 +1,104 @@
 package com.metaproc.patientzerogui.controllers;
 
-import com.metaproc.patientzerogui.bean.TestBean;
+import com.metaproc.patientzerogui.listener.ButtonListener;
+import com.metaproc.patientzerogui.worker.GmxWorker;
+import com.metaproc.patientzerogui.worker.RpaWorker;
+import com.metaproc.patientzerorpa.appservices.gmx.GmxController;
 import com.metaproc.patientzerorpa.robot.RpaRobot;
-import com.metaproc.patientzerorpa.robot.SikuliXRobot;
-import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.layout.StackPane;
-import javafx.stage.Stage;
-import org.springframework.boot.CommandLineRunner;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-//@Setter
-//@Getter
-//@AllArgsConstructor
-//@NoArgsConstructor
+import javax.swing.*;
+
+@Slf4j
 @Component
-public class RobotControlCenter extends Application implements CommandLineRunner{
+public class RobotControlCenter extends JFrame{
 
+	//private RpaWorker rpaWorker;
 	private RpaRobot rpaRobot;
-	private SikuliXRobot sikuliXRobot;
-	private TestBean testBean;
+	private RpaWorker rpaWorker;
+	private GmxController gmxController;
+	private GmxWorker gmxWorker;
 
-	public RobotControlCenter() {
-		super();
-	}
+	private JButton doGmx = new JButton( "Start GMX" );
+	private JButton takeScreen = new JButton( "take Screenshot" );
+	private JButton jButton2 = new JButton( "Start Process" );
+	private JButton jButton3 = new JButton( "jButton3" );
+	private JButton jButton4 = new JButton( "jButton4" );
+	private JButton jButton5 = new JButton( "jButton5" );
 
-	public RobotControlCenter( RpaRobot rpaRobot, SikuliXRobot sikuliXRobot, TestBean testBean ){
-		super();
+	private JTextArea jTextArea = new JTextArea( "" );
+
+	private ButtonListener buttonListener;
+
+	public RobotControlCenter( GmxController gmxController, RpaRobot rpaRobot, ButtonListener bl ){
+		this.gmxController = gmxController;
 		this.rpaRobot = rpaRobot;
-		this.sikuliXRobot = sikuliXRobot;
-		this.testBean = testBean;
+		this.buttonListener = bl;
+
+		initComponents();
+		injectSelf();
 	}
 
-	public RpaRobot getRpaRobot(){
-		return rpaRobot;
+	private void injectSelf() {
+		buttonListener.setRobotControlCenter(this);
 	}
 
-	public void setRpaRobot( RpaRobot rpaRobot ){
-		this.rpaRobot = rpaRobot;
+	private void initComponents () {
+
+		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		this.setLayout( new java.awt.BorderLayout() );
+
+
+		JPanel jPanel1 = new JPanel();
+		//doGmx = new javax.swing.JButton( "doGmx" );
+		jPanel1.setLayout( new java.awt.GridLayout(2, 1) );
+		jPanel1.add(takeScreen);
+		jPanel1.add(doGmx);
+
+
+
+		doGmx.addActionListener( buttonListener );
+		takeScreen.addActionListener( buttonListener );
+		jButton2.addActionListener( buttonListener );
+		jButton3.addActionListener( buttonListener );
+		jButton4.addActionListener( buttonListener );
+		jButton5.addActionListener( buttonListener );
+
+
+//		this.add( takeScreen, java.awt.BorderLayout.PAGE_START );
+//		this.add( doGmx, java.awt.BorderLayout.PAGE_START);
+		this.add(jPanel1, java.awt.BorderLayout.PAGE_START);
+		//this.add(jButton2, java.awt.BorderLayout.PAGE_END);
+		// this.add(jButton3, java.awt.BorderLayout.LINE_START);
+		this.add(jTextArea, java.awt.BorderLayout.CENTER);
+		// this.add(jButton5, java.awt.BorderLayout.LINE_END);
+
+		pack();
+
+		this.setSize(500,500);
 	}
 
-	public SikuliXRobot getSikuliXRobot(){
-		return sikuliXRobot;
+	public void start() {
+		//rpaWorker.execute();
+		log.debug( "execute GmxWorker" );
+		gmxWorker = new GmxWorker(gmxController);
+		gmxWorker.execute();
 	}
 
-	public void setSikuliXRobot( SikuliXRobot sikuliXRobot ){
-		this.sikuliXRobot = sikuliXRobot;
+	public void takeScreenshot() {
+		log.debug( "execute take screenshot" );
+		rpaWorker = new RpaWorker(rpaRobot);
+		try {
+			rpaWorker.execute();
+			log.debug( "executed screenshot" );
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		//rpaWorker.cancel( false );
 	}
 
-	@Override
-	public void start(Stage primaryStage) {
-
-
-
-		//rpaRobot.init();
-		System.out.println("Contains property rpaRobot: " + (rpaRobot != null));
-		System.out.println("Contains property sikuliXRobot: " + (sikuliXRobot != null));
-		System.out.println("Contains property testBean: " + (testBean != null));
-
-		Button btnTakeScreenshot = new Button();
-		btnTakeScreenshot.setText( "Screenshot" );
-
-		Button btnStartRobot = new Button();
-		btnStartRobot.setText( "Start Robot" );
-		btnStartRobot.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(ActionEvent event) {
-				rpaRobot.execute();
-			}
-		});
-
-
-
-
-
-		Label label = new Label("Patient Zero");
-
-		StackPane root = new StackPane();
-		root.getChildren().add(label);
-		root.getChildren().add(btnTakeScreenshot);
-
-		Scene scene = new Scene(root, 400, 300);
-
-		primaryStage.setTitle("Hello JavaFX World!");
-		primaryStage.setScene(scene);
-		primaryStage.show();
-	}
-
-	@Override
-	public void run(String... args) {
-		System.out.println("2 Contains property rpaRobot: " + (rpaRobot != null));
-		System.out.println("2 Contains property sikuliXRobot: " + (sikuliXRobot != null));
-		System.out.println("2 Contains property testBean: " + (testBean != null));
-
-		//launch(args);
-
-		System.out.println("3 Contains property rpaRobot: " + (rpaRobot != null));
-		System.out.println("3 Contains property sikuliXRobot: " + (sikuliXRobot != null));
-		System.out.println("3 Contains property testBean: " + (testBean != null));
-	}
-
-	public TestBean getTestBean(){
-		return testBean;
-	}
-
-	public void setTestBean( TestBean testBean ){
-		this.testBean = testBean;
+	public void stop() {
+		rpaWorker.cancel( true );
 	}
 }
